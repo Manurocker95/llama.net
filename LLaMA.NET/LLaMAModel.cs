@@ -1,21 +1,22 @@
 using LLaMA.NET.Native;
 using LLaMA.NET.LibLoader;
+using System;
 
 namespace LLaMA.NET
 {
     /// <summary>
     /// A factory for LLaMA models. Processed with <seealso cref="WhisperProcessor"/>
     /// </summary>
-    public class LLaMAModel : IDisposable
+    public class LLaMAModel : System.IDisposable
     {
-        public Lazy<IntPtr> ctx;
+        public IntPtr ctx;
         private bool isDisposed = false;
         private bool isFromFile = false;
         private bool isFromBytes = false;
 
         private LLaMAModel(IntPtr context)
         {
-            this.ctx = new Lazy<IntPtr>(() => context);
+            this.ctx = context;
         }
 
         /// <summary>
@@ -52,9 +53,9 @@ namespace LLaMA.NET
             }
 
             // Dispose of unmanaged resources.
-            if (ctx.IsValueCreated && ctx.Value != IntPtr.Zero)
+            if (ctx != null && ctx != IntPtr.Zero)
             {
-                LLaMANativeMethods.llama_free(ctx.Value);
+                LLaMANativeMethods.llama_free(ctx);
             }
 
             isDisposed = true;

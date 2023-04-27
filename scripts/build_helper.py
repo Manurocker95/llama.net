@@ -116,7 +116,7 @@ def prepare_llama_bin():
     # Copy our quantize binary
     executable_ext = "" if not "win" in lib_dest_dir else ".exe"
     quantize_build_dir = os.path.join(
-        build_dir,f"quantize{executable_ext}")
+        build_dir,f"debug\\quantize{executable_ext}")
     quantize_dest_dir = os.path.join(
         os_dest_dir,f"quantize{executable_ext}")
     print (f"[PREPARE] Copying quantize to {quantize_dest_dir}.")

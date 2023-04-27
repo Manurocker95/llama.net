@@ -1,7 +1,9 @@
 using System.Runtime.InteropServices;
-
+using System.Runtime;
 using LLaMA.NET.Native;
 using llama_token = System.Int32;
+using System;
+using System.Linq;
 
 namespace LLaMA.NET
 {
@@ -23,14 +25,14 @@ namespace LLaMA.NET
 
             // Convert prompt to embeddings
             var inputEmbeds = new llama_token[prompt.Length + 1];
-            var inputTokenLength = LLaMANativeMethods.llama_tokenize(_model.ctx.Value, prompt, inputEmbeds, inputEmbeds.Length, true);
+            var inputTokenLength = LLaMANativeMethods.llama_tokenize(_model.ctx, prompt, inputEmbeds, inputEmbeds.Length, true);
             Array.Resize(ref inputEmbeds, inputTokenLength);
             
             // Evaluate the prompt
             for (int i = 0; i < inputEmbeds.Length; i++)
             {
                 // batch size 1
-                LLaMANativeMethods.llama_eval(_model.ctx.Value, new llama_token[] { inputEmbeds[i] }, 1, this._embeds.Length + i, _N_THREADS);
+                LLaMANativeMethods.llama_eval(_model.ctx, new llama_token[] { inputEmbeds[i] }, 1, this._embeds.Length + i, _N_THREADS);
             }
 
             // Add it and pass it along 😋
@@ -53,7 +55,7 @@ namespace LLaMA.NET
             for (int i = 0; i < nTokensToPredict; i++)
             {
                 // Grab the next token
-                var id = LLaMANativeMethods.llama_sample_top_p_top_k(_model.ctx.Value, null, 0, 40, 0.8f, 0.2f, 1f / 0.85f);
+                var id = LLaMANativeMethods.llama_sample_top_p_top_k(_model.ctx, null, 0, 40, 0.8f, 0.2f, 1f / 0.85f);
 
                 // Check if EOS, and break if otherwise!
                 if (id == LLaMANativeMethods.llama_token_eos())
@@ -67,13 +69,13 @@ namespace LLaMA.NET
                 this._embeds = this._embeds.Concat(newEmbds).ToArray();
 
                 // Get res!
-                var res = Marshal.PtrToStringAnsi(LLaMANativeMethods.llama_token_to_str(_model.ctx.Value, id));
+                var res = Marshal.PtrToStringAnsi(LLaMANativeMethods.llama_token_to_str(_model.ctx, id));
 
                 // Add to string
                 prediction += res;
 
                 // eval next token
-                LLaMANativeMethods.llama_eval(_model.ctx.Value, newEmbds, 1, this._embeds.Length, _N_THREADS);
+                LLaMANativeMethods.llama_eval(_model.ctx, newEmbds, 1, this._embeds.Length, _N_THREADS);
             }
 
             return prediction;
